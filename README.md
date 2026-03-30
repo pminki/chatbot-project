@@ -27,26 +27,26 @@
 ```env
 OPENAI_API_KEY=sk-your-openai-api-key-here
 DATABASE_URL=mysql+pymysql://chatbot_user:chatbot_password@db:3306/ai_chatbot_db?charset=utf8mb4
-
+```
 
 ### 3. 컨테이너 실행 (Build & Run)
-# 백그라운드에서 전체 시스템(DB, Backend, Frontend) 빌드 및 실행
-docker-compose up -d --build
+  * 백그라운드에서 전체 시스템(DB, Backend, Frontend) 빌드 및 실행
+    docker-compose up -d --build
 
 
 ### 4. 사내 문서 학습 (Data Ingestion)
-# 최초 실행 시 챗봇의 지식(Vector DB)을 채워주어야 합니다.
-# 프로젝트 최상단의 data/ 폴더에 학습시킬 매뉴얼(PDF, TXT)을 넣습니다.
-# 아래 명령어를 통해 데이터를 임베딩합니다.
-# 백엔드 컨테이너 내부로 진입하여 학습 스크립트 실행
-docker exec -it chatbot-backend python scripts/ingest_data.py
+  * 최초 실행 시 챗봇의 지식(Vector DB)을 채워주어야 합니다.
+  * 프로젝트 최상단의 data/ 폴더에 학습시킬 매뉴얼(PDF, TXT)을 넣습니다.
+  * 아래 명령어를 통해 데이터를 임베딩합니다.
+  * 백엔드 컨테이너 내부로 진입하여 학습 스크립트 실행
+    docker exec -it chatbot-backend python scripts/ingest_data.py
 
 ---
 
 ## 💻 레거시 시스템(JSP/HTML) 연동 방법
-# Docker 시스템이 구동 중이라면, 기존 LMS의 화면 소스(예: footer.jsp 또는 index.html) 하단에 아래 두 줄의 코드만 추가하면 챗봇이 즉시 렌더링됩니다.
-<script type="module" src="http://localhost:3000/assets/chatbot-bundle.js"></script>
-<ai-chatbot user-id="lms-user-001"></ai-chatbot>
+  * Docker 시스템이 구동 중이라면, 기존 LMS의 화면 소스(예: footer.jsp 또는 index.html) 하단에 아래 두 줄의 코드만 추가하면 챗봇이 즉시 렌더링됩니다.
+    <script type="module" src="http://localhost:3000/assets/chatbot-bundle.js"></script>
+    <ai-chatbot user-id="lms-user-001"></ai-chatbot>
 
 ---
 
@@ -66,12 +66,12 @@ chatbot-project/
 ---
 
 ## 🛠️ 유지보수 및 트러블슈팅
-### Q. 챗봇이 대답을 안 하거나 에러가 납니다.
-  - 백엔드 로그를 확인하여 LLM API 호출 문제인지, DB 연결 문제인지 파악합니다.
-    docker logs -f chatbot-backend
+  * Q. 챗봇이 대답을 안 하거나 에러가 납니다.
+    - 백엔드 로그를 확인하여 LLM API 호출 문제인지, DB 연결 문제인지 파악합니다.
+      docker logs -f chatbot-backend
 
-### Q. 새로운 기능을 추가하고 싶습니다.
-  - 의도(Intent) 추가: backend/models/schemas.py 및 backend/services/agent_service.py의 라우터 프롬프트를 수정합니다.
-  - UI 변경: frontend/src/pages/ChatPage.tsx를 수정하고 컨테이너를 재시작합니다.
+  * Q. 새로운 기능을 추가하고 싶습니다.
+    - 의도(Intent) 추가: backend/models/schemas.py 및 backend/services/agent_service.py의 라우터 프롬프트를 수정합니다.
+    - UI 변경: frontend/src/pages/ChatPage.tsx를 수정하고 컨테이너를 재시작합니다.
 
 
