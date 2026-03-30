@@ -14,46 +14,34 @@ export const ChatPage: React.FC = () => {
   const [input, setInput] = useState(''); // 입력창 텍스트
   const [messages, setMessages] = useState<Message[]>([]); // 완료된 메시지 목록
   const [isPreparing, setIsPreparing] = useState(false); // AI 분석 중 상태
-
-  /**
-   * [스트리밍 상태 관리]
-   * AI가 답변을 한 글자씩 내뱉을 때, 실시간으로 보여줄 임시 메시지입니다.
-   */
   const [streamingMsg, setStreamingMsg] = useState<{ text: string, intent?: string } | null>(null);
 
   const sessionId = 'session-123';
   const userId = 'legacy-user-01';
 
-  /**
-   * [메시지 전송 로직]
-   */
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = input;
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
     setInput('');
-    setIsPreparing(true); // AI가 분석을 시작함
+    setIsPreparing(true);
     setStreamingMsg({ text: '', intent: undefined });
 
     let currentText = '';
     let currentIntent: string | undefined = undefined;
 
-    // 스트리밍 서비스 호출
     await ChatService.streamMessage(
       { session_id: sessionId, user_id: userId, message: userMessage },
-      // 1. 토큰(글자)이 올 때마다 호출
       (token) => {
-        setIsPreparing(false); // 답변이 시작되면 분석 중 표시를 끔
+        setIsPreparing(false);
         currentText += token;
         setStreamingMsg({ text: currentText, intent: currentIntent });
       },
-      // 2. 의도가 파악됐을 때 호출
       (intent) => {
         currentIntent = intent;
         setStreamingMsg(prev => prev ? { ...prev, intent } : { text: '', intent });
       },
-      // 3. 오류 발생 시 호출
       () => {
         setIsPreparing(false);
         setStreamingMsg(null);
@@ -61,7 +49,6 @@ export const ChatPage: React.FC = () => {
       }
     );
 
-    // 4. 모든 답변 전송이 끝나면 임시 상태를 전체 메시지 리스트로 옮깁니다.
     if (currentText) {
       setMessages(prev => [...prev, { sender: 'bot', text: currentText, intent: currentIntent }]);
     }
@@ -69,67 +56,82 @@ export const ChatPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', width: '350px', backgroundColor: 'white' }}>
-      <h3 style={{ margin: '0 0 15px 0' }}>AI 튜터링 (실시간 스트리밍)</h3>
+    <div className="flex flex-col h-[600px] w-[400px] bg-slate-50 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 font-sans">
+      {/* 상단 헤더: 그라데이션과 그림자 효과 */}
+      <header className="bg-indigo-600 px-6 py-4 shadow-md flex items-center justify-between">
+        <h3 className="text-white font-bold text-lg tracking-tight">AI 학습 튜터</h3>
+        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
+      </header>
 
-      <div style={{ height: '350px', overflowY: 'auto', marginBottom: '10px', fontSize: '14px', paddingRight: '5px' }}>
-        {/* 이전 대화 내용들 */}
+      {/* 메시지 리스트 영역 */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, idx) => (
-          <div key={idx} style={{ textAlign: msg.sender === 'user' ? 'right' : 'left', margin: '10px 0' }}>
-            <span style={{
-              background: msg.sender === 'user' ? '#e6f7ff' : '#f6ffed',
-              padding: '8px 12px', borderRadius: '8px', display: 'inline-block', whiteSpace: 'pre-wrap'
-            }}>
+          <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+            <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm shadow-sm leading-relaxed ${msg.sender === 'user'
+              ? 'bg-indigo-600 text-white rounded-tr-none'
+              : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+              }`}>
               {msg.text}
-            </span>
-            {msg.intent === 'CS' && <div style={{ fontSize: '11px', color: '#ff4d4f', marginTop: '4px' }}>[고객지원 안내됨]</div>}
+              {msg.intent === 'CS' && (
+                <div className="mt-2 text-[10px] font-semibold text-rose-500 uppercase tracking-wider border-t border-rose-100 pt-1">
+                  Agent Notified
+                </div>
+              )}
+            </div>
           </div>
         ))}
 
-        {/* AI 분석 중 (박동 효과) */}
+        {/* AI 분석 중 (스켈레톤 느낌의 애니메이션) */}
         {isPreparing && (
-          <div style={{ textAlign: 'left', margin: '10px 0', color: '#999', fontStyle: 'italic', animation: 'fade 1s infinite alternate' }}>
-            🤔 질문의 의도를 분석하고 있습니다...
+          <div className="flex justify-start animate-pulse">
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl rounded-tl-none px-4 py-2 text-indigo-400 text-sm italic">
+              AI가 생각하는 중...
+            </div>
           </div>
         )}
 
-        {/* 🌟 실시간 스트리밍 답변 (말풍선 안에서 실시간으로 글자가 추가됨) */}
+        {/* 실시간 스트리밍 답변 */}
         {streamingMsg && !isPreparing && (
-          <div style={{ textAlign: 'left', margin: '10px 0' }}>
-            <span style={{
-              background: '#f6ffed', padding: '8px 12px', borderRadius: '8px', display: 'inline-block', whiteSpace: 'pre-wrap'
-            }}>
+          <div className="flex justify-start">
+            <div className="max-w-[85%] bg-white border border-indigo-100 text-slate-800 px-4 py-2.5 rounded-2xl rounded-tl-none text-sm shadow-indigo-100 shadow-lg leading-relaxed relative">
               {streamingMsg.text}
-              <span style={{ animation: 'blink 0.8s infinite', fontWeight: 'bold' }}>|</span> {/* 커서 효과 */}
-            </span>
-            {streamingMsg.intent === 'CS' && <div style={{ fontSize: '11px', color: '#ff4d4f', marginTop: '4px' }}>[고객지원 안내됨]</div>}
+              <span className="inline-block w-1.5 h-4 bg-indigo-400 ml-1 translate-y-0.5 animate-bounce"></span>
+              {streamingMsg.intent === 'CS' && (
+                <div className="mt-2 text-[10px] font-semibold text-rose-500 uppercase tracking-wider border-t border-rose-100 pt-1">
+                  Agent Notified
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* 입력 영역 */}
-      <div style={{ display: 'flex' }}>
-        <input style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()} // [수정] deprecated된 onKeyPress 대신 onKeyDown 사용
-          placeholder="메시지를 입력하세요..."
-          disabled={isPreparing || streamingMsg !== null} // 응답 중일 때는 입력 방지
-        />
-        <button
-          onClick={handleSend}
-          disabled={isPreparing || streamingMsg !== null}
-          style={{ marginLeft: '8px', padding: '8px 12px', cursor: (isPreparing || streamingMsg) ? 'not-allowed' : 'pointer' }}
-        >
-          {isPreparing ? '분석중' : '전송'}
-        </button>
-      </div>
-
-      {/* 애니메이션 정의 */}
-      <style>{`
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
-      `}</style>
+      {/* 하단 입력 영역: 인라인 포커스 효과 */}
+      <footer className="p-4 bg-white border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl transition-all focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent focus-within:bg-white">
+          <input
+            className="flex-1 bg-transparent px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            placeholder="궁금한 내용을 물어보세요..."
+            disabled={isPreparing || streamingMsg !== null}
+          />
+          <button
+            onClick={handleSend}
+            disabled={isPreparing || streamingMsg !== null || !input.trim()}
+            className={`p-2 rounded-lg transition-all transform active:scale-95 ${isPreparing || streamingMsg || !input.trim()
+              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-indigo-200'
+              }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+            </svg>
+          </button>
+        </div>
+      </footer>
     </div>
   );
 };
+

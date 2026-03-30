@@ -2,6 +2,7 @@ import React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 import reactToWebComponent from 'react-to-webcomponent';
 import App from './App';
+import './index.css';
 
 /**
  * [Web Component 변환 설정]
