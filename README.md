@@ -41,12 +41,14 @@ docker-compose up -d --build
 # 백엔드 컨테이너 내부로 진입하여 학습 스크립트 실행
 docker exec -it chatbot-backend python scripts/ingest_data.py
 
+---
 
 ## 💻 레거시 시스템(JSP/HTML) 연동 방법
 # Docker 시스템이 구동 중이라면, 기존 LMS의 화면 소스(예: footer.jsp 또는 index.html) 하단에 아래 두 줄의 코드만 추가하면 챗봇이 즉시 렌더링됩니다.
 <script type="module" src="http://localhost:3000/assets/chatbot-bundle.js"></script>
 <ai-chatbot user-id="lms-user-001"></ai-chatbot>
 
+---
 
 ## 📁 주요 디렉토리 구조
 chatbot-project/
@@ -61,6 +63,7 @@ chatbot-project/
 ├── database/              # MariaDB 초기화 스크립트 (init.sql)
 └── docker-compose.yml     # 전체 시스템 오케스트레이션
 
+---
 
 ## 🛠️ 유지보수 및 트러블슈팅
 ### Q. 챗봇이 대답을 안 하거나 에러가 납니다.
