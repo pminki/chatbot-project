@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+langchain
+langchain-openai
+langchain-chroma
+langchain-text-splitters
+langgraph
+pymysql
+sqlalchemy
+pydantic
+pypdf

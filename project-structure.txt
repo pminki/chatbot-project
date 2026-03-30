@@ -1,0 +1,30 @@
+chatbot-project/
+├── .cursorrules               # (1) AI 에디터 규칙 파일
+├── docker-compose.yml         # (2) Docker 실행 설정
+├── database/
+│   └── init.sql               # (3) MariaDB 초기 DDL
+├── backend/
+│   ├── Dockerfile             # (4) 백엔드 Docker 설정
+│   ├── requirements.txt       # (5) 파이썬 라이브러리 목록
+│   ├── main.py                # (6) FastAPI 진입점
+│   ├── models/
+│   │   ├── database.py        # (7) SQLAlchemy 모델
+│   │   └── schemas.py         # (8) Pydantic 스키마
+│   ├── services/
+│   │   ├── agent_service.py   # (9) LangGraph 에이전트 핵심 로직
+│   │   └── retrieval_service.py # (10) RAG 검색 서비스
+│   └── scripts/
+│       └── ingest_data.py     # (11) 문서 학습(임베딩) 스크립트
+└── frontend/
+    ├── Dockerfile             # (12) 프론트엔드 Docker 설정
+    ├── package.json           # (13) NPM 패키지 설정
+    ├── vite.config.ts         # (14) 빌드 설정
+    └── src/
+        ├── main.tsx           # (15) 웹 컴포넌트 변환 진입점
+        ├── App.tsx            # (16) React Router
+        ├── types/
+        │   └── chat.ts        # (17) 프론트엔드 타입 정의
+        ├── services/
+        │   └── api.ts         # (18) API 통신 로직
+        └── pages/
+            └── ChatPage.tsx   # (19) 챗봇 UI 화면
