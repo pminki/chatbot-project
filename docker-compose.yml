@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. 데이터베이스 컨테이너 (MariaDB)
   db:
@@ -31,9 +29,16 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - CHROMA_DIR=${CHROMA_DIR:-/app/chroma_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}
+      # [추가] 구글 클라우드 환경 변수
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-asia-northeast3}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-key.json # 컨테이너 내부의 키 파일 경로
     volumes:
       - ./backend:/app
       - chroma_data:/app/chroma_db
+      # [추가] 로컬 PC의 인증 파일을 컨테이너 내부로 마운트 (읽기 전용)
+      # 주의: 아래 '~/.config/gcloud/...' 부분을 방금 메모하신 실제 경로로 수정하세요!
+      - C:\Users\user\AppData\Roaming\gcloud\application_default_credentials.json:/app/gcp-key.json:ro
     depends_on:
       - db
 
