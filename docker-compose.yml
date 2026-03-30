@@ -1,42 +1,50 @@
 version: '3.8'
 
 services:
+  # 1. 데이터베이스 컨테이너 (MariaDB)
   db:
-    image: mariadb:10.11
+    image: mariadb:11.4
     container_name: chatbot-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ai_chatbot_db
-      MYSQL_USER: chatbot_user
-      MYSQL_PASSWORD: chatbot_password
+      # .env 파일의 값을 자동으로 읽어옵니다.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mariadb_data:/var/lib/mysql
 
+  # 2. 백엔드 컨테이너 (FastAPI + LangGraph)
   backend:
     build: ./backend
     container_name: chatbot-backend
     restart: always
     ports:
-      - "8000:8000"
+      # .env의 BACKEND_PORT 값을 호스트 포트로 사용 (기본값 8000)
+      - "${BACKEND_PORT:-8000}:8000"
     environment:
-      - OPENAI_API_KEY=sk-your-api-key-here # 실제 키로 변경 필요
-      - DATABASE_URL=mysql+pymysql://chatbot_user:chatbot_password@db:3306/ai_chatbot_db?charset=utf8mb4
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - CHROMA_DIR=${CHROMA_DIR:-/app/chroma_db}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
     volumes:
       - ./backend:/app
       - chroma_data:/app/chroma_db
     depends_on:
       - db
 
+  # 3. 프론트엔드 컨테이너 (React Web Component)
   frontend:
     build: ./frontend
     container_name: chatbot-frontend
     restart: always
     ports:
-      - "3000:80"
+      # .env의 FRONTEND_PORT 값을 호스트 포트로 사용 (기본값 3000)
+      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
 
