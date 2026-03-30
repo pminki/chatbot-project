@@ -4,46 +4,81 @@ from langchain_chroma import Chroma
 from sqlalchemy.orm import Session
 from models.database import SessionLocal, LearningTutorRecord
 
+# 사용자의 질문과 관련된 정보를 ‘외부 지식 저장소’나 ‘학습 이력’에서 찾아오는 역할을 합니다. (RAG 시스템의 핵심 부품)
 class RetrievalService:
     def __init__(self):
-      # 팩토리를 통해 임베딩 모델을 동적으로 주입
+      # 1. 임베딩 모델 설정: 텍스트를 숫자로 변환(Embedding)하여 컴퓨터가 의미를 이해하도록 돕는 모델을 가져옵니다.
       self.embeddings = LLMFactory.get_embeddings()
       
+      # 2. 벡터 데이터베이스(ChromaDB) 로드: 
+      # 미리 저장된 지식들이 들어있는 저장소(chroma_db)에 연결합니다.
       self.vector_store = Chroma(
-        persist_directory=os.environ.get("CHROMA_DIR", "./chroma_db"),
-        embedding_function=self.embeddings,
-        collection_name="lms_knowledge"
+        persist_directory=os.environ.get("CHROMA_DIR", "./chroma_db"), # 데이터 저장 경로
+        embedding_function=self.embeddings, # 검색에 사용할 임베딩 방식
+        collection_name="lms_knowledge" # 저장소 내의 책장 이름과 같습니다.
       )
 
     def retrieve_from_vector_db(self, query: str, k: int = 3):
+        """
+        벡터 DB에서 사용자의 질문 내용과 가장 비슷하며 도움이 될만한 자료를 k개 찾아옵니다.
+        
+        Args:
+            query (str): 사용자의 질문 문장
+            k (int): 찾아올 관련 문서의 개수 (기본값 3개)
+        """
         try:
+          # 질문과 의미적으로 가장 가까운 문서를 검색합니다.
           results = self.vector_store.similarity_search(query, k=k)
+          # 검색된 여러 문서의 내용을 하나로 합쳐서 반환합니다.
           return "\n\n".join([doc.page_content for doc in results])
-        except:
+        except Exception as e:
+          # 검색 중에 오류가 나더라도 프로그램이 꺼지지 않게 안전하게 처리합니다.
+          print(f"벡터 데이터 검색 중 오류: {e}")
           return ""
 
     def retrieve_from_sql_db(self, user_id: str, topic: str):
+        """
+        전통적인 SQL DB에서 해당 사용자가 예전에 이 주제로 무엇을 공부했는지(요약본) 가져옵니다.
+        
+        Args:
+            user_id (str): 사용자를 식별하는 고유 번호
+            topic (str): 학습 주제 이름 (예: RAG, Python 등)
+        """
+        # 데이터베이스와 대화하기 위한 세션(통로)을 엽니다.
         db: Session = SessionLocal()
         try:
+          # 해당 사용자의 특정 주제에 대한 가장 최근 기록 1개를 쿼리(질의)합니다.
           record = db.query(LearningTutorRecord).filter(
             LearningTutorRecord.user_id == user_id,
             LearningTutorRecord.learning_topic == topic
           ).order_by(LearningTutorRecord.created_at.desc()).first()
+          
+          # 기록이 있고, 이전에 공부한 요약 내용이 있다면 반환합니다.
           if record and record.session_summary:
               return f"[{topic} 이전 학습 요약]: {record.session_summary}"
           return ""
-        except:
+        except Exception as e:
+          print(f"학습 기록 조회 중 오류: {e}")
           return ""
         finally:
+          # DB 사용이 끝나면 통로를 반드시 닫아줘야 메모리 낭비가 없습니다.
           db.close()
 
     def get_combined_context(self, user_id: str, query: str, intent: str):
+      """
+      벡터 DB의 ‘지식’과 SQL DB의 ‘사용자 상태’를 하나로 합쳐서 AI에게 줄 조리법(Context)을 만듭니다.
+      """
       combined = ""
+      
+      # 1단계: 질문과 직접적으로 관련된 참고 자료(지식)를 찾아옵니다.
       v_context = self.retrieve_from_vector_db(query)
       if v_context:
         combined += f"[참고 자료]\n{v_context}\n\n"
+      
+      # 2단계: 질문 의도가 'TUTOR(학습 지원)'일 경우에만 사용자의 과거 학습 정보를 가져옵니다. (맞춤형 응대용)
       if intent == "TUTOR":
-        s_context = self.retrieve_from_sql_db(user_id, topic="RAG") # 임시 주제
+        # 현재는 'RAG'라는 주제로 가정되어 있으나, 추후 유동적으로 변경 가능합니다.
+        s_context = self.retrieve_from_sql_db(user_id, topic="RAG") 
         if s_context:
           combined += f"[학습자 이전 상태]\n{s_context}\n"
           
