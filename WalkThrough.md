@@ -18,6 +18,37 @@ I have added comprehensive, beginner-friendly Korean comments to the core backen
 ### 4. [llm_factory.py](file:///e:/project/chatbot-project/backend/core/llm_factory.py)
 - **Documentation**: Documented the Factory pattern used to dynamically switch between AI providers (OpenAI / Vertex AI) and explained LLM parameters like `temperature`.
 
+### 5. [ingest_data.py](file:///e:/project/chatbot-project/backend/scripts/ingest_data.py)
+- **Performance Fix**: Optimized the data insertion logic by using batch additions for both Chroma (Vector DB) and MariaDB (SQL), significantly improving speed.
+- **Documentation**: Added comments explaining the PDF/TXT loading, text splitting (chunking), and the overall ingestion workflow for new developers.
+
+### 6. [schemas.py](file:///e:/project/chatbot-project/backend/models/schemas.py)
+- **Documentation**: Added beginner-friendly comments explaining the data structures used for API requests and responses, as well as AI classification results.
+
+### 7. [database.py](file:///e:/project/chatbot-project/backend/models/database.py)
+- **Documentation**: Added comprehensive comments explaining the SQLAlchemy setup (Engine, Session, Base) and the schema definitions for learning records, document metadata, and chat messages.
+
+## Frontend Documentation
+
+### 1. [main.tsx](file:///e:/project/chatbot-project/frontend/src/main.tsx)
+- **Documentation**: Explained how the React application is converted into a standard Web Component (Custom Element).
+
+### 2. [App.tsx](file:///e:/project/chatbot-project/frontend/src/App.tsx)
+- **Documentation**: Explained the use of `MemoryRouter` for embedded applications to avoid interfering with the host website's URL, and documented the basic routing structure.
+
+### 3. [ChatPage.tsx](file:///e:/project/chatbot-project/frontend/src/pages/ChatPage.tsx)
+- **Bug Fix**: Replaced the deprecated `onKeyPress` with `onKeyDown` for better compatibility.
+- **Documentation**: Documented the state management, API interaction, and UI feedback logic.
+
+### 4. [api.ts](file:///e:/project/chatbot-project/frontend/src/services/api.ts)
+- **Documentation**: Documented the fetch-based communication layer, explaining HTTP methods (POST), headers, and JSON serialization.
+
+### 5. [tsconfig.json](file:///e:/project/chatbot-project/frontend/tsconfig.json)
+- **Bug Fix**: Added a proper TypeScript configuration file to resolve linting errors.
+
+### 6. [chat.ts](file:///e:/project/chatbot-project/frontend/src/types/chat.ts)
+- **Documentation**: Documented the shared TypeScript interfaces for requests and responses, ensuring consistency between frontend components and services.
+
 ## Verification Results
 
 - All missing imports have been resolved.
