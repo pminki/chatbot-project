@@ -51,6 +51,7 @@ DATABASE_URL=mysql+pymysql://chatbot_user:chatbot_password@db:3306/ai_chatbot_db
 ---
 
 ## 📁 주요 디렉토리 구조
+```
 chatbot-project/
 ├── backend/               # FastAPI 및 LangGraph 백엔드 API
 │   ├── main.py            # API 라우터 진입점
@@ -62,6 +63,7 @@ chatbot-project/
 │   └── src/main.tsx       # React 앱을 <ai-chatbot> 태그로 변환
 ├── database/              # MariaDB 초기화 스크립트 (init.sql)
 └── docker-compose.yml     # 전체 시스템 오케스트레이션
+```
 
 ---
 
