@@ -9,3 +9,5 @@ pymysql
 sqlalchemy
 pydantic
 pypdf
+langchain-google-vertexai
+google-cloud-aiplatform
