@@ -25,7 +25,9 @@ services:
       # .env의 BACKEND_PORT 값을 호스트 포트로 사용 (기본값 8000)
       - "${BACKEND_PORT:-8000}:8000"
     environment:
+      - LLM_PROVIDER=${LLM_PROVIDER}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+
       - DATABASE_URL=${DATABASE_URL}
       - CHROMA_DIR=${CHROMA_DIR:-/app/chroma_db}
       - ENVIRONMENT=${ENVIRONMENT:-development}

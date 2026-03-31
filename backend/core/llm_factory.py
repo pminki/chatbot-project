@@ -11,34 +11,42 @@ class LLMFactory:
   """
   
   @staticmethod
-  def get_chat_model(temperature=0.2, model_name=None):
+  def get_chat_model(temperature=0.2, model_name=None, is_flash=False):
     """
     실제로 대화를 나눌 '채팅 모델' 객체를 만들어줍니다.
     
     Args:
         temperature (float): 답변의 '온도' (0에 가까울수록 단호하고 정확하며, 1에 가까울수록 창의적이고 다양함)
         model_name (str): 사용할 특정 모델 이름 (지정하지 않으면 각 제공자의 기본 모델 사용)
+        is_flash (bool): True일 경우 가벼운 모델(분류, 단순 작업용)을 사용합니다.
     """
     # 실행 환경(환경 변수)에서 어떤 AI 회사의 모델을 쓸지 확인합니다. (기본값은 openai)
     provider = os.getenv("LLM_PROVIDER", "openai").lower()
     
     if provider == "vertexai":
-      # Google Cloud의 Vertex AI(Gemini 모델 가족)를 사용하는 경우
-      # 가벼운 분류 작업에는 'flash' 계열을, 깊이 있는 생각에는 'pro' 계열을 주로 씁니다.
-      target_model = model_name or "gemini-2.5-flash-lite"
+      if model_name:
+        target_model = model_name
+      else:
+        # 가벼운 분류 작업에는 'flash' 계열을, 깊이 있는 생각에는 'pro' 계열을 주로 씁니다.
+        target_model = "gemini-2.5-flash" if is_flash else "gemini-2.5-flash-lite"
+      
       return ChatVertexAI(
         model_name=target_model, 
         temperature=temperature,
         max_output_tokens=2048 # 모델이 한 번에 내놓을 답변의 최대 글자 수 조절
       )
     else:
-      # OpenAI의 모델(GPT 시리즈)을 사용하는 경우
-      # 'gpt-4o-mini'는 속도가 매우 빠르고 비용이 저렴하여 챗봇 응대에 효율적입니다.
-      target_model = model_name or "gpt-4o-mini"
+      if model_name:
+        target_model = model_name
+      else:
+        # 'gpt-4o-mini'는 속도가 매우 빠르고 비용이 저렴하여 챗봇 응대에 효율적입니다.
+        target_model = "gpt-4o-mini" if is_flash else "gpt-4o"
+      
       return ChatOpenAI(
         model=target_model, 
         temperature=temperature
       )
+
 
   @staticmethod
   def get_embeddings():

@@ -3,10 +3,17 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ChatPage } from './pages/ChatPage';
 
 /**
+ * [App 컴포넌트 프롭스]
+ */
+export interface AppProps {
+  userId?: string;
+}
+
+/**
  * [App 컴포넌트]
  * 전체 웹 애플리케이션의 뼈대(Shell)를 형성합니다.
  */
-export const App: React.FC = () => {
+export const App: React.FC<AppProps> = ({ userId }) => {
   return (
     /**
      * [MemoryRouter]
@@ -16,10 +23,11 @@ export const App: React.FC = () => {
     <MemoryRouter initialEntries={['/']}>
       <Routes>
         {/* '/' 경로(기본 페이지)로 접속했을 때 ChatPage 컴포넌트를 보여줍니다. */}
-        <Route path="/" element={<ChatPage />} />
+        <Route path="/" element={<ChatPage userId={userId} />} />
       </Routes>
     </MemoryRouter>
   );
 };
+
 
 export default App;

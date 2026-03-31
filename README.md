@@ -49,8 +49,15 @@ DATABASE_URL=mysql+pymysql://chatbot_user:chatbot_password@db:3306/ai_chatbot_db
 ## 💻 레거시 시스템(JSP/HTML) 연동 방법
   * Docker 시스템이 구동 중이라면, 기존 LMS의 화면 소스(예: footer.jsp 또는 index.html) 하단에 아래 두 줄의 코드만 추가하면 챗봇이 즉시 렌더링됩니다.
     ```
-    <script type="module" src="http://localhost:3000/assets/chatbot-bundle.js"></script>
+    <!-- 1. 스타일 파일 로드 (가장 중요!) -->
+    <link rel="stylesheet" href="http://localhost:3000/assets/style.css">
+
+    <!-- 2. 챗봇 번들 로드 -->
+    <script type="module" src="http://localhost:3000/chatbot.js"></script>
+
+    <!-- 3. 컴포넌트 사용 -->
     <ai-chatbot user-id="lms-user-001"></ai-chatbot>
+
     ```
 
 ---

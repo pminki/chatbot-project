@@ -7,14 +7,16 @@ from models.database import SessionLocal, ChatMessage
 
 app = FastAPI(title="LMS AI Chatbot API")
 
-# CORS 설정 (프론트엔드 접속 허용)
+# CORS 설정 (*.alpaedu.co.kr 서브도메인 접속 허용)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https?://(.*\.)?alpaedu\.co\.kr",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 agent = ChatbotAgent()
 

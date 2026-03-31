@@ -10,14 +10,22 @@ interface Message {
   intent?: string;
 }
 
-export const ChatPage: React.FC = () => {
+/**
+ * [ChatPage 프롭스]
+ */
+interface ChatPageProps {
+  userId?: string;
+}
+
+export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => {
   const [input, setInput] = useState(''); // 입력창 텍스트
   const [messages, setMessages] = useState<Message[]>([]); // 완료된 메시지 목록
   const [isPreparing, setIsPreparing] = useState(false); // AI 분석 중 상태
   const [streamingMsg, setStreamingMsg] = useState<{ text: string, intent?: string } | null>(null);
 
-  const sessionId = 'session-123';
-  const userId = 'legacy-user-01';
+  // [수정] 세션 ID를 랜덤하게 생성하거나 외부에서 주입받을 수 있도록 변경
+  const [sessionId] = useState(() => `session-${Math.random().toString(36).substr(2, 9)}`);
+
 
   const handleSend = async () => {
     if (!input.trim()) return;

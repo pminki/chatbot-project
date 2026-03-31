@@ -4,13 +4,21 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    'process.env': {},
+  },
+
   build: {
+    lib: {
+      entry: './src/main.tsx',
+      name: 'Chatbot',
+      fileName: 'chatbot',
+      formats: ['es']
+    },
     rollupOptions: {
       output: {
-        entryFileNames: `assets/chatbot-bundle.js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`
+        assetFileNames: 'assets/[name].[ext]'
       }
     }
   }
-});
+});

@@ -56,10 +56,9 @@ class ChatbotAgent:
       last_message = state["messages"][-1].content
       
       # 분석 전용 가벼운 모델 사용
-      provider = os.getenv("LLM_PROVIDER", "openai")
-      model_name = "gemini-1.5-flash" if provider == "vertexai" else "gpt-4o-mini"
-      base_llm = LLMFactory.get_chat_model(temperature=0, model_name=model_name)
+      base_llm = LLMFactory.get_chat_model(temperature=0, is_flash=True)
       classifier_llm = base_llm.with_structured_output(IntentClassification)
+
       
       prompt = ChatPromptTemplate.from_messages([
         ("system", "사용자의 의도를 TUTOR(학습 지원) 또는 CS(서비스 지원)로 분류하세요."),
