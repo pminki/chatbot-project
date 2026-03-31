@@ -21,20 +21,40 @@ class RetrievalService:
     def retrieve_from_vector_db(self, query: str, k: int = 3):
         """
         벡터 DB에서 사용자의 질문 내용과 가장 비슷하며 도움이 될만한 자료를 k개 찾아옵니다.
+        이때, 관리자 페이지에서 '활성화(True)'로 설정된 파일들만 검색 대상에 포함합니다.
         
         Args:
             query (str): 사용자의 질문 문장
             k (int): 찾아올 관련 문서의 개수 (기본값 3개)
         """
+        db: Session = SessionLocal()
         try:
-          # 질문과 의미적으로 가장 가까운 문서를 검색합니다.
-          results = self.vector_store.similarity_search(query, k=k)
+          # 1. 활성화 상태인 파일 ID 목록을 먼저 가져옵니다.
+          from models.database import RagFile
+          active_files = db.query(RagFile.file_id).filter(RagFile.is_active == True).all()
+          active_file_ids = [f.file_id for f in active_files]
+
+          if not active_file_ids:
+            # 활성화된 파일이 없다면 빈 문자열을 반환합니다.
+            return ""
+
+          # 2. Chroma 검색 시 filter 파라미터를 사용하여 해당 파일들의 조각들만 검색합니다.
+          # filter={"file_id": {"$in": active_file_ids}} 형식을 사용합니다.
+          results = self.vector_store.similarity_search(
+            query, 
+            k=k, 
+            filter={"file_id": {"$in": active_file_ids}}
+          )
+
           # 검색된 여러 문서의 내용을 하나로 합쳐서 반환합니다.
           return "\n\n".join([doc.page_content for doc in results])
         except Exception as e:
           # 검색 중에 오류가 나더라도 프로그램이 꺼지지 않게 안전하게 처리합니다.
           print(f"벡터 데이터 검색 중 오류: {e}")
           return ""
+        finally:
+          db.close()
+
 
     def retrieve_from_sql_db(self, user_id: str, topic: str):
         """

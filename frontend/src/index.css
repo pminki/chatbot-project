@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../index.html";
+
 
 @theme {
     --animate-fade-in: fade-in 0.3s ease-out;

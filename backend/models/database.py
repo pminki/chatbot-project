@@ -32,16 +32,29 @@ class LearningTutorRecord(Base):
   created_at = Column(DateTime, default=func.now())                   # 기록 생성 시간
   updated_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 기록 수정 시간
 
-# [테이블 2: RagDocumentMeta]
-# AI가 참고하는 지식 문서(RAG용)의 메타데이터(정보)를 저장합니다.
+# [테이블 2: RagFile] 
+# 업로드된 지식 파일의 원본 정보와 처리 상태를 저장합니다.
+class RagFile(Base):
+  __tablename__ = "rag_files"
+  file_id = Column(String(100), primary_key=True)                      # 고유 파일 ID (UUID)
+  filename = Column(String(255), nullable=False)                         # 원본 파일명
+  file_path = Column(String(512), nullable=False)                         # 저장된 경로
+  status = Column(String(20), default="PENDING")                       # PENDING, PROCESSING, COMPLETED, ERROR
+  is_active = Column(Boolean, default=True)                           # 이 파일의 내용을 검색에 사용할지 여부
+  created_at = Column(DateTime, default=func.now())                   # 생성 시간
+
+# [테이블 3: RagDocumentMeta]
+# AI가 참고하는 지식 문서(RAG용)의 각 조각(Chunk)에 대한 정보를 저장합니다.
 class RagDocumentMeta(Base):
   __tablename__ = "rag_documents_meta"
-  doc_id = Column(String(100), primary_key=True)                      # 문서 조각의 고유 ID
+  doc_id = Column(String(100), primary_key=True)                      # 문서 조각의 고유 ID (Chroma DB의 ID와 매칭)
+  file_id = Column(String(100), index=True)                          # 어느 파일에서 추출된 조각인지 (RagFile.file_id)
   title = Column(String(255), nullable=False)                         # 문서 제목(또는 발췌 제목)
   source_type = Column(String(50), nullable=False)                    # 출처 (예: INTERNAL_DOC)
   legacy_ref_id = Column(String(100))                                 # 이전 시스템 참조 ID
   category = Column(String(100))                                      # 문서 분류(카테고리)
-  is_active = Column(Boolean, default=True)                           # 현재 사용 중인지 여부
+  is_active = Column(Boolean, default=True)                           # 현재 사용 중인지 여부 (기본값 True)
+
 
 # [테이블 3: ChatMessage]
 # 모든 채팅 메시지 실시간 로그를 보관합니다.

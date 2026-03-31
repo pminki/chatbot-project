@@ -66,9 +66,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
   return (
     <div className="flex flex-col h-[600px] w-[400px] bg-slate-50 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 font-sans">
       {/* 상단 헤더: 그라데이션과 그림자 효과 */}
-      <header className="bg-indigo-600 px-6 py-4 shadow-md flex items-center justify-between">
+      <header className="bg-indigo-600 px-6 py-4 shadow-md flex items-center justify-start">
         <h3 className="text-white font-bold text-lg tracking-tight">AI 학습 튜터</h3>
-        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
+        <div className="w-2 h-2 ml-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
       </header>
 
       {/* 메시지 리스트 영역 */}

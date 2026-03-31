@@ -76,5 +76,51 @@ export const ChatService = {
       console.error('스트리밍 통신 에러:', error);
       onError();
     }
+  },
+
+  /**
+   * [RAG 관리] 모든 업로드된 지식 파일 목록을 가져옵니다.
+   */
+  async getRagFiles(): Promise<any[]> {
+    const response = await fetch(`${API_BASE_URL}/rag/files`);
+    if (!response.ok) throw new Error('파일 목록을 가져오는데 실패했습니다.');
+    return response.json();
+  },
+
+  /**
+   * [RAG 관리] 새로운 지식 파일을 업로드합니다.
+   */
+  async uploadRagFile(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_BASE_URL}/rag/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) throw new Error('파일 업로드에 실패했습니다.');
+    return response.json();
+  },
+
+  /**
+   * [RAG 관리] 파일의 활성화 상태를 변경합니다.
+   */
+  async toggleRagFile(fileId: string, isActive: boolean): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/rag/files/${fileId}?is_active=${isActive}`, {
+      method: 'PATCH',
+    });
+    if (!response.ok) throw new Error('상태 변경에 실패했습니다.');
+    return response.json();
+  },
+
+  /**
+   * [RAG 관리] 파일과 관련된 모든 데이터를 삭제합니다.
+   */
+  async deleteRagFile(fileId: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/rag/files/${fileId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('파일 삭제에 실패했습니다.');
+    return response.json();
   }
 };
+

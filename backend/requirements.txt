@@ -11,3 +11,7 @@ pydantic
 pypdf
 langchain-google-vertexai
 google-cloud-aiplatform
+langchain-community
+python-dotenv
+python-multipart
+
