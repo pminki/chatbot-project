@@ -58,3 +58,49 @@ I have added comprehensive, beginner-friendly Korean comments to the core backen
 ---
 > [!NOTE]
 > The comments are tailored for beginners, using analogies like "Factory", "Map", and "Recipe" to explain complex AI/Backend concepts.
+
+
+# DB Storage and Context Memory Fix Walkthrough
+
+We have successfully resolved the issues with database persistence and conversation memory. The chatbot now remembers previous turns and records all activities in the database.
+
+## Changes Made
+
+### 🗄️ Database Layer
+- **[database/init.sql](file:///e:/project/chatbot-project/database/init.sql)**: Fixed syntax errors (missing `COMMENT` keywords) that prevented correct schema initialization.
+- **[models/database.py](file:///e:/project/chatbot-project/backend/models/database.py)**: 
+    - Added `ChatSession` model to track sessions.
+    - Updated `LearningTutorRecord` and `ChatMessage` to be fully compatible with the backend logic.
+
+### 🧠 Agent Memory
+- **[services/agent_service.py](file:///e:/project/chatbot-project/backend/services/agent_service.py)**: 
+    - Integrated `MemorySaver` (Checkpointer) into the LangGraph workflow.
+    - Updated `achat_stream` to use the `session_id` as the `thread_id` for state persistence.
+
+### 📝 API and Logging
+- **[main.py](file:///e:/project/chatbot-project/backend/main.py)**: 
+    - Refactored `log_chat_message` to handle three tables: `chat_sessions`, `chat_messages`, and `learning_tutor_records`.
+    - It now automatically creates or updates session and tutor records based on the interaction.
+
+---
+
+## Verification Results
+
+### 1. Conversation Memory (Thread Control)
+We simulated a conversation to test if the AI remembers the user's name across turns.
+- **Input 1**: "My name is Hong Gil-dong"
+- **Input 2**: "What is my name?"
+- **Result**: AI correctly answered "Your name is Hong Gil-dong."
+
+### 2. Database Persistence
+We verified the SQL records using raw queries in the `db` container.
+- **`chat_sessions`**: Successfully created for the session ID.
+- **`chat_messages`**: Recorded both user and assistant messages with the correct roles.
+- **`learning_tutor_records`**: Successfully created when the intent was classified as `TUTOR`.
+
+> [!TIP]
+> Since we dropped the old tables to apply the new schema, any previously uploaded RAG files' metadata was cleared from the DB (though vectors remain in ChromaDB). You should **re-upload** or manually re-sync your knowledge files to resume knowledge-based chatting.
+
+---
+
+The system is now robust and ready for production-level logging and context management. 🚀

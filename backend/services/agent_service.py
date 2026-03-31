@@ -6,8 +6,10 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.prompts import ChatPromptTemplate
 from core.llm_factory import LLMFactory
+from langgraph.checkpoint.memory import MemorySaver
 from models.schemas import IntentClassification
 from services.retrieval_service import RetrievalService
+
 
 # [입문자 가이드] 
 # LangGraph는 "상태(State)"를 관리하며 여러 단계를 거쳐 답변을 완성합니다.
@@ -49,7 +51,8 @@ class ChatbotAgent:
       workflow.add_edge("tutor", END)
       workflow.add_edge("cs_support", END)
       
-      return workflow.compile()
+      # 5. 메모리 세이저(Checkpointer)와 함께 컴파일
+      return workflow.compile(checkpointer=MemorySaver())
 
     async def node_router(self, state: AgentState):
       """사용자의 의도를 분석하여 TUTOR 혹은 CS로 분류합니다."""
@@ -135,10 +138,13 @@ class ChatbotAgent:
         "user_id": user_id
       }
 
+      # [중요] 세션 ID를 thread_id로 사용하여 LangGraph가 이전 대화를 불러오게 합니다.
+      config = {"configurable": {"thread_id": session_id}}
+
       full_response = ""
       final_intent = "UNKNOWN"
 
-      async for event in self.graph.astream_events(input_state, version="v2"):
+      async for event in self.graph.astream_events(input_state, config, version="v2"):
         kind = event["event"]
         
         if kind == "on_chain_end" and event["name"] == "router":

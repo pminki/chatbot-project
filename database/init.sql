@@ -13,10 +13,10 @@ CREATE TABLE chat_sessions (
 CREATE TABLE learning_tutor_records (
   record_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   session_id VARCHAR(100) NOT NULL COMMENT '연결된 대화 세션',
-  user_id VARCHAR(50) NOT NULL '학습자 ID',
+  user_id VARCHAR(50) NOT NULL COMMENT '학습자 ID',
   learning_topic VARCHAR(200) NOT NULL COMMENT '현재 학습 중인 주제 (예: RAG 개념, Java Spring 기초 등)',
   understanding_level VARCHAR(50) COMMENT 'AI가 파악한 학습자의 이해도 (예: 입문, 개념 이해 중, 심화 질문 단계 등)',
-  session_summary LONGTEXT '해당 세션에서 학습한 핵심 개념 요약 (세션 종료 시 AI가 자동 요약하여 저장)',
+  session_summary LONGTEXT COMMENT '해당 세션에서 학습한 핵심 개념 요약 (세션 종료 시 AI가 자동 요약하여 저장)',
   recommended_next_step TEXT COMMENT '튜터가 제안하는 다음 학습 방향, 추천 RAG 문서 또는 퀴즈',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -25,8 +25,9 @@ CREATE TABLE learning_tutor_records (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='학습 도우미 튜터링 이력 관리';
 
 CREATE TABLE rag_documents_meta (
-  doc_id VARCHAR(100) PRIMARY KEY 'Vector DB(Chroma, FAISS 등)의 Document ID와 동일',
+  doc_id VARCHAR(100) PRIMARY KEY COMMENT 'Vector DB(Chroma, FAISS 등)의 Document ID와 동일',
   title VARCHAR(255) NOT NULL COMMENT '문서 제목',
+
   source_type VARCHAR(50) NOT NULL COMMENT '출처: LEGACY_DB, INTERNAL_PDF, MANUAL 등',
   legacy_ref_id VARCHAR(100) COMMENT '레거시 DB 원본 PK (iBatis/MyBatis 쿼리 연동용)',
   category VARCHAR(100) COMMENT '큐레이션 카테고리 (예: 사내규정, 기술문서 등)',

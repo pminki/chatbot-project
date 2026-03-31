@@ -18,7 +18,16 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # 이 클래스를 상속받아 파이썬 클래스를 만들면, SQLAlchemy가 이를 테이블로 인식합니다.
 Base = declarative_base()
 
-# [테이블 1: LearningTutorRecord] 
+# [테이블 1: ChatSession] 
+# 대화 세션 정보를 관리합니다.
+class ChatSession(Base):
+  __tablename__ = "chat_sessions"
+  session_id = Column(String(100), primary_key=True)                   # 세션 고유 ID
+  user_id = Column(String(50), nullable=False, index=True)            # 사용자 ID
+  created_at = Column(DateTime, default=func.now())                   # 세션 생성 시간
+  last_message_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 마지막 대화 시간
+
+# [테이블 2: LearningTutorRecord] 
 # 사용자가 튜터와 대화하며 학습한 이력을 저장하는 표입니다.
 class LearningTutorRecord(Base):
   __tablename__ = "learning_tutor_records"
@@ -32,7 +41,7 @@ class LearningTutorRecord(Base):
   created_at = Column(DateTime, default=func.now())                   # 기록 생성 시간
   updated_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 기록 수정 시간
 
-# [테이블 2: RagFile] 
+# [테이블 3: RagFile] 
 # 업로드된 지식 파일의 원본 정보와 처리 상태를 저장합니다.
 class RagFile(Base):
   __tablename__ = "rag_files"
@@ -43,7 +52,7 @@ class RagFile(Base):
   is_active = Column(Boolean, default=True)                           # 이 파일의 내용을 검색에 사용할지 여부
   created_at = Column(DateTime, default=func.now())                   # 생성 시간
 
-# [테이블 3: RagDocumentMeta]
+# [테이블 4: RagDocumentMeta]
 # AI가 참고하는 지식 문서(RAG용)의 각 조각(Chunk)에 대한 정보를 저장합니다.
 class RagDocumentMeta(Base):
   __tablename__ = "rag_documents_meta"
@@ -56,7 +65,7 @@ class RagDocumentMeta(Base):
   is_active = Column(Boolean, default=True)                           # 현재 사용 중인지 여부 (기본값 True)
 
 
-# [테이블 3: ChatMessage]
+# [테이블 5: ChatMessage]
 # 모든 채팅 메시지 실시간 로그를 보관합니다.
 class ChatMessage(Base):
   __tablename__ = "chat_messages"
