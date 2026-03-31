@@ -104,3 +104,87 @@ We verified the SQL records using raw queries in the `db` container.
 ---
 
 The system is now robust and ready for production-level logging and context management. 🚀
+
+
+
+# AI Response UI Fix (Spacing & Markdown) Walkthrough
+
+We have addressed the issue where AI responses appeared as a single collapsed line of text.
+
+## 🛠️ Key Fixes
+
+### 1. Single Newline Handling (`remark-breaks`)
+By default, Markdown requires two newlines to start a new paragraph. We integrated the `remark-breaks` plugin so that even a single `\n` character from the LLM is rendered as a line break.
+
+### 2. Typography Spacing (`.prose` class)
+We applied a custom `.prose` class to the message bubbles. This ensures that:
+- **Paragraphs**: Have a `0.75rem` bottom margin.
+- **Lists**: Have proper indentation and bullet point spacing.
+- **Code**: Inline code has a subtle background and distinct color.
+
+### 3. Clean Environment
+The frontend was rebuilt with `--no-cache` to ensure all new dependencies (`react-markdown`, `remark-gfm`, `remark-breaks`, etc.) are correctly installed and bundled.
+
+---
+
+## Technical Stack Update
+- **Renderer**: `ReactMarkdown` v9
+- **Plugins**: `remark-gfm` (Tables), `remark-breaks` (Single newlines)
+- **Styling**: Tailwind CSS + Custom CSS Transitions
+
+---
+
+The chat interface is now optimized for clear, educational, and technical communication. 🚀
+
+# Visual Precision Refresh Walkthrough
+
+We have final-tuned the aesthetic coordinates to achieve a more harmonious and professional layout for the 500x700px chat window.
+
+## 📐 Golden Ratio Alignment
+
+### 1. Optimized Padding (`px-5`)
+To avoid the "crowded" look in the expanded frame, we transitioned from `px-6` (1.5rem) to `px-5` (1.25rem). This subtle change significantly improves the spatial balance of the content areas.
+
+### 2. Message Bubble Breathing Room
+- **Max Width**: Reduced from `90%` to `85%`.
+- **Reasoning**: By keeping the bubbles away from the container's right edge, we create a clear visual path for the user to follow, making conversational threads much easier to read.
+
+### 3. Vertical Symmetry
+- **Header <=> Footer Consistency**: Ensured that the text containers in both the header and footer start at the exact same horizontal offset. 
+- **Icon Sizing**: Reduced the `X` button and `Send` button scale slightly to match the overall typography weight.
+
+---
+
+The chat interface is now visually balanced and respects the proportions of the UI container. 🚀
+
+
+# Unified Responsive Chat System Walkthrough
+
+We have modernized the Chatbot's infrastructure by unifying the UI logic and implementing a fully responsive layout.
+
+## 📐 Responsive Intelligence
+
+The chat window now intelligently adapts to the user's viewport:
+
+### Mobile context (< 640px)
+- **Fluid Width**: Automatically expands to fill the screen width with a small margin (`right-4 left-4`).
+- **Dynamic Height**: Scales based on the window height (`h-[calc(100vh-120px)]`).
+
+### Desktop context (> 640px)
+- **Optimal Size**: Fixed at `500x700px` for a professional, centered interaction experience.
+- **Floating Position**: Fixed `bottom-28 right-8` to avoid interfering with general web content.
+
+## 🛠️ Logic Unification
+
+We eliminated the duplication of the Close (X) button and container styles:
+
+### Single Source of Truth (`ChatPage.tsx`)
+- The React component now manages its own header, borders, and shadowing.
+- **Custom Event Integration**: The internal `X` button now dispatches a `close-chat` event, which the host page (`index.html`) listens to for triggering the scale-up/down animations.
+
+### Lean Wrapper (`index.html`)
+- The `#chat-container` was stripped of all redundant styling. It now acts purely as a positioning and visibility shell, leading to a much smaller DOM footprint and better performance.
+
+---
+The Tutor Chatbot is now ready for both high-performance desktop use and convenient mobile access. 🚀
+

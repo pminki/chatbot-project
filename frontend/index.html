@@ -44,17 +44,9 @@
       </svg>
     </button>
 
-    <!-- 챗봇 컨테이너 -->
+    <!-- 챗봇 컨테이너: 디자인 요소는 내부 ai-chatbot 컴포넌트가 책임지며, 화면 크기에 따라 반응형으로 크기 조절됨 -->
     <div id="chat-container"
-      class="fixed bottom-28 right-8 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden chat-hidden transition-all duration-300 origin-bottom-right z-50">
-
-      <!-- 닫기 버튼을 절대 위치로 설정하여 내부 타이틀바와 겹치게 함 -->
-      <button id="chat-close"
-        class="absolute top-3.5 right-4 text-white/70 hover:text-white hover:bg-white/10 p-1 rounded-lg transition-all z-[60]">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      class="fixed bottom-24 right-4 left-4 w-auto h-[calc(100vh-120px)] max-h-[700px] sm:bottom-28 sm:right-8 sm:left-auto sm:w-[500px] sm:h-[700px] chat-hidden transition-all duration-300 origin-bottom-right z-50">
 
       <div class="h-full">
         <ai-chatbot user-id="lms-user-001"></ai-chatbot>
@@ -65,7 +57,6 @@
 
   <script>
     const toggleBtn = document.getElementById('chat-toggle');
-    const closeBtn = document.getElementById('chat-close');
     const container = document.getElementById('chat-container');
     let isOpen = false;
 
@@ -82,12 +73,16 @@
       }
     };
 
+    // 토글 버튼 이벤트
     toggleBtn.addEventListener('click', toggleChat);
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleChat();
+
+    // React 컴포넌트 내부의 'X' 버튼 클릭 시 발생하는 close-chat 이벤트 수신
+    window.addEventListener('close-chat', () => {
+      if (isOpen) toggleChat();
     });
   </script>
+
+
   <script type="module" src="/chatbot.js"></script>
 </body>
 
