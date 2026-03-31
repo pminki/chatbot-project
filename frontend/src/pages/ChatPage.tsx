@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 import { ChatService } from '../services/api';
 
 /**
@@ -22,6 +23,18 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
   const [messages, setMessages] = useState<Message[]>([]); // 완료된 메시지 목록
   const [isPreparing, setIsPreparing] = useState(false); // AI 분석 중 상태
   const [streamingMsg, setStreamingMsg] = useState<{ text: string, intent?: string } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * [자동 스크롤]
+   * 새로운 메시지가 추가되거나 답변이 스트리밍될 때마다 화면을 가장 아래로 내립니다.
+   */
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, streamingMsg]);
+
 
   // [수정] 세션 ID를 랜덤하게 생성하거나 외부에서 주입받을 수 있도록 변경
   const [sessionId] = useState(() => `session-${Math.random().toString(36).substr(2, 9)}`);
@@ -112,7 +125,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
             </div>
           </div>
         )}
+
+        {/* 자동 스크롤 전용 타겟 */}
+        <div ref={scrollRef} className="h-1" />
       </div>
+
 
       {/* 하단 입력 영역: 인라인 포커스 효과 */}
       <footer className="p-4 bg-white border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.02)]">
