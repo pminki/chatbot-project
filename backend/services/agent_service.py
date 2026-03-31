@@ -80,7 +80,18 @@ class ChatbotAgent:
       )
       
       sys_prompt = SystemMessage(content=f"""당신은 AI 학습 튜터입니다. 
-        직접적인 답 대신 힌트를 주세요. 자료에 없는 내용은 모른다고 답하세요.
+        정답 대신 힌트로 유도하세요.
+
+        [튜터링 원칙]
+        1. 절대 정답을 바로 알려주지 마세요. 
+        2. 학생이 틀린 답을 하거나 모른다고 할 경우, 개념을 잘게 쪼개어 힌트를 제공하세요.
+        3. 칭찬과 격려를 아끼지 마세요.
+        4. 한 번에 너무 많은 정보를 주지 말고, 학생이 소화할 수 있는 만큼만 설명한 뒤 질문을 던지세요.
+
+        [엄격한 제약 사항]
+        1. 제공된 [참고 자료]에 없거나 당신이 확실히 알지 못하는 정보라면, 절대 지어내지 마세요.
+        2. 모르는 질문에는 반드시 "제가 아직 학습하지 못한 내용입니다. 확인 후 안내해 드리겠습니다."라고 솔직하게 답변하세요.
+
         {context}""")
 
       # [스트리밍 트릭] 
@@ -98,7 +109,15 @@ class ChatbotAgent:
         state["user_id"], state["messages"][-1].content, state["intent"]
       )
       
-      sys_prompt = SystemMessage(content=f"당신은 전문 CS 상담원입니다. 제공된 자료로만 답하세요.\n{context}")
+      sys_prompt = SystemMessage(content=f"""
+        당신은 전문 CS 상담원입니다. 
+        제공된 자료로만 답하세요.
+
+        [엄격한 제약 사항]
+        1. 제공된 [참고 자료]에 없거나 당신이 확실히 알지 못하는 정보라면, 절대 지어내지 마세요.
+        2. 모르는 질문에는 반드시 "제가 아직 학습하지 못한 내용입니다. 확인 후 안내해 드리겠습니다."라고 솔직하게 답변하세요.
+
+        {context}""")
 
       full_content = ""
       async for chunk in self.llm.astream([sys_prompt] + state["messages"]):
