@@ -99,7 +99,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
   return (
     <div className="flex flex-col w-full h-full bg-slate-50 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 font-sans relative">
       {/* 상단 헤더: 제목과 닫기 버튼으로 균형 유지 */}
-      <header className="bg-indigo-600 px-5 py-4 shadow-md flex items-center justify-between">
+      <header className="bg-slate-800 px-5 py-4 shadow-md flex items-center justify-between">
         <div className="flex items-center">
           <h3 className="text-white font-bold text-lg tracking-tight">AI 학습 튜터</h3>
           <div className="w-2 h-2 ml-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
@@ -118,7 +118,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm shadow-sm leading-relaxed ${msg.sender === 'user'
-              ? 'bg-indigo-600 text-white rounded-tr-none'
+              ? 'bg-indigo-100 text-gray-900 rounded-tr-none'
               : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none prose prose-slate max-w-none'
               }`}>
               <MarkdownRenderer content={msg.text} />
