@@ -1,30 +1,61 @@
 {
     "compilerOptions": {
+        // 1. 코드를 어떤 버전의 자바스크립트로 변환할지 정합니다. 
+        // "ESNext"는 항상 최신 자바스크립트 버전을 의미합니다.
         "target": "ESNext",
+        // 2. 자바스크립트 클래스(Class) 문법을 최신 표준에 맞게 더 엄격하게 처리합니다.
         "useDefineForClassFields": true,
+        // 3. 타입스크립트가 기본적으로 알아야 할 기능(라이브러리)들의 사전입니다.
+        // DOM(브라우저 기능), ESNext(최신 문법) 등을 알아듣게 해줍니다.
         "lib": [
             "DOM",
             "DOM.Iterable",
             "ESNext"
         ],
+        // 4. 일반 자바스크립트(.js) 파일을 프로젝트에 섞어 쓸 수 있게 할지 정합니다.
+        // false이므로 오직 타입스크립트(.ts, .tsx) 파일만 허용합니다.
         "allowJs": false,
+        // 5. 외부 패키지(node_modules)의 타입 검사를 건너뜁니다.
+        // 내 코드만 검사하기 때문에 프로그램 실행 및 빌드 속도가 훨씬 빨라집니다.
         "skipLibCheck": true,
+        // 6. 구형 자바스크립트 패키지들을 최신 import 문법으로 
+        // 에러 없이 자연스럽게 불러올 수 있게 호환성을 맞춰주는 마법 같은 옵션입니다.
         "esModuleInterop": true,
+        // 7. 'import * as React from "react"' 대신 
+        // 'import React from "react"' 처럼 깔끔하게 작성할 수 있게 해줍니다.
         "allowSyntheticDefaultImports": true,
+        // 8. ★타입스크립트의 핵심★ 타입을 아주 엄격하게 검사합니다.
+        // 초반엔 빨간줄이 많이 뜨겠지만, 런타임(실행 중) 에러를 완벽에 가깝게 막아줍니다.
         "strict": true,
+        // 9. 파일 이름의 대소문자를 엄격하게 구분합니다.
+        // 윈도우와 맥 사용자 간에 파일명 대소문자 때문에 생기는 끔찍한 협업 오류를 막아줍니다.
         "forceConsistentCasingInFileNames": true,
+        // 10. 파일을 서로 불러오고 내보내는 방식(import/export)을 최신 방식인 ESNext로 설정합니다.
         "module": "ESNext",
+        // 11. import 경로를 찾는 방식입니다. 
+        // "Bundler"는 Vite나 Webpack 같은 최신 빌드 도구에 최적화된 방식입니다.
         "moduleResolution": "Bundler",
+        // 12. .json 파일을 마치 자바스크립트 객체(데이터)처럼 import 해서 쓸 수 있게 해줍니다.
         "resolveJsonModule": true,
+        // 13. 각 파일을 독립적으로 변환할 수 있는지 검사합니다. 
+        // Vite 같은 최신 도구들은 속도를 위해 파일을 하나씩 개별적으로 변환하므로 꼭 켜둬야 합니다.
         "isolatedModules": true,
+        // 14. 타입스크립트는 "타입 검사"만 하고, 실제 자바스크립트 파일은 만들어내지 않게 합니다.
+        // 실제 파일 생성을 Vite(번들러)가 대신 해주기 때문에 역할을 나누는 것입니다.
         "noEmit": true,
+        // 15. 리액트의 화면 그리는 문법(<div> 같은 JSX)을 어떻게 처리할지 정합니다.
+        // "react-jsx"는 리액트 17버전 이상부터 쓰이며, 파일마다 'import React'를 안 써도 되게 해줍니다.
         "jsx": "react-jsx",
+        // 16. 프로젝트 전체에서 기본적으로 사용할 타입들의 목록입니다.
+        // 리액트 관련 타입과 Vite 전용 클라이언트 타입을 전역으로 불러옵니다.
         "types": [
             "react",
             "react-dom",
             "vite/client"
         ]
     },
+    // 17. 타입스크립트가 위의 규칙들을 적용해서 "검사할 폴더"를 지정합니다.
+    // src 폴더 안에 있는 소스 코드들만 검사하겠다는 뜻입니다.
     "include": [
         "src"
     ]

@@ -45,7 +45,7 @@ export const ChatService = {
         // 1. 바이너리 데이터를 텍스트로 변환
         buffer += decoder.decode(value, { stream: true });
 
-        // 2. SSE 규격(data: ...)에 맞춰 데이터를 쪼갭니다.
+        // 2. SSE(Server Sent Events) 규격(data: ...)에 맞춰 데이터를 쪼갭니다.
         // 네트워크 지연 등의 이유로 여러 메시지가 한꺼번에 올 수 있으므로 \n\n으로 나눕니다.
         const messages = buffer.split('\n\n');
         buffer = messages.pop() || ''; // 아직 완성되지 않은 마지막 조각은 버퍼에 남깁니다.
