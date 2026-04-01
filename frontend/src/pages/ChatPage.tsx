@@ -133,7 +133,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
           <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm shadow-sm leading-relaxed ${msg.sender === 'user'
               ? 'bg-indigo-100 text-gray-900 rounded-tr-none' // 유저 메시지 스타일
-              : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none prose prose-slate max-w-none' // AI 메시지 스타일
+              : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none prose prose-slate' // AI 메시지 스타일
               }`}>
               <MarkdownRenderer content={msg.text} />
               {/* 만약 상담사가 필요하다는 버튼 등이 포함된 경우 표시 */}
@@ -158,7 +158,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ userId = 'guest-user' }) => 
         {/* AI가 실시간으로 답변을 써내려가는 중일 때 보여주는 영역 */}
         {streamingMsg && !isPreparing && (
           <div className="flex justify-start">
-            <div className="max-w-[85%] bg-white border border-indigo-100 text-slate-800 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-indigo-100/30 shadow-lg leading-relaxed relative prose prose-slate max-w-none">
+            <div className="max-w-[85%] bg-white border border-indigo-100 text-slate-800 px-4 py-3 rounded-2xl rounded-tl-none text-sm shadow-indigo-100/30 shadow-lg leading-relaxed relative prose prose-slate">
               <MarkdownRenderer content={streamingMsg.text} />
               {/* 타이핑 효과를 위해 깜빡이는 커서 */}
               <span className="inline-block w-1.5 h-4 bg-indigo-400 ml-1 translate-y-0.5 animate-bounce"></span>
