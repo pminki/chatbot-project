@@ -40,7 +40,7 @@ class LLMFactory:
         target_model = model_name
       else:
         # 'gpt-4o-mini'는 속도가 매우 빠르고 비용이 저렴하여 챗봇 응대에 효율적입니다.
-        target_model = "gpt-4o-mini" if is_flash else "gpt-4o"
+        target_model = "gpt-4o" if is_flash else "gpt-4o-mini"
       
       return ChatOpenAI(
         model=target_model, 
