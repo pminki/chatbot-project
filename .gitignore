@@ -19,6 +19,7 @@ backend/chroma_db/
 # RAG 학습용 원본 사내 문서 (PDF, TXT 등 기밀 자료)
 data/
 backend/data/
+backend/uploads/
 
 # MariaDB 로컬 볼륨 마운트 (만약 로컬 폴더로 마운트했을 경우를 대비)
 mysql_data/

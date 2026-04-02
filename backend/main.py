@@ -21,7 +21,7 @@ app = FastAPI(title="LMS AI Chatbot API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"], # 내 컴퓨터 테스트용
-    allow_origin_regex=r"https?://(.*\.)?alpaedu\.co\.kr", # 실제 서비스 주소
+    allow_origin_regex=r"https?://(.*\.)?alpaedu\.co\.kr|https://.*\.ngrok-free\.app|https://.*\.ngrok\.io", # 실제 서비스 주소 + ngrok 터널 주소
     allow_credentials=True, # 쿠키 등 인증 정보 허용
     allow_methods=["*"], # 모든 HTTP 메소드(GET, POST, PUT, DELETE 등) 허용
     allow_headers=["*"], # 모든 HTTP 헤더 허용
@@ -116,11 +116,20 @@ async def upload_rag_file(background_tasks: BackgroundTasks, file: UploadFile = 
     db = SessionLocal()
     rag_service = RagService(db)
     try:
-        content = await file.read()
+        # [수정] 1. 파일을 먼저 동기적으로 저장합니다. (파일 핸들 소멸 방지)
+        # 이 과정에서 DB에 'PROCESSING' 상태로 초기 레코드가 생성됩니다.
+        file_info = rag_service.save_file_sync(file)
         
-        # 파일을 읽어와서 처리하는 작업을 백그라운드에서 실행합니다.
-        background_tasks.add_task(rag_service.save_and_process_file, file.filename, content)
-        return {"message": f"'{file.filename}' 업로드 완료. 백그라운드에서 인덱싱이 시작됩니다."}
+        # [수정] 2. 실제 분석(인덱싱) 작업만 백그라운드로 넘깁니다. 
+        # 이때 별도의 DB 세션을 사용하도록 설계된 static method를 호출합니다.
+        background_tasks.add_task(
+            RagService.process_indexing_task, 
+            file_info["file_id"], 
+            file_info["save_path"], 
+            file_info["file_name"]
+        )
+        
+        return {"message": f"'{file.filename}' 업로드 요청을 완료했습니다. 백그라운드에서 분석이 시작됩니다."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
