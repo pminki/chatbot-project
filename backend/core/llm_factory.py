@@ -57,8 +57,6 @@ class LLMFactory:
     provider = os.getenv("LLM_PROVIDER", "openai").lower()
     
     if provider == "vertexai":
-      # Google의 한국어 포함 다국어 지원 임베딩 모델
       return VertexAIEmbeddings(model_name="text-multilingual-embedding-002")
     else:
-      # OpenAI의 성능과 가성비가 좋은 최신 임베딩 모델
       return OpenAIEmbeddings(model="text-embedding-3-small")

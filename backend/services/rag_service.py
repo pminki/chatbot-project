@@ -7,7 +7,7 @@ from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from core.llm_factory import LLMFactory
-from models.database import RagFile, RagDocumentMeta    # 데이터베이스 모델
+from models.database import RagFile, RagDocumentMeta, SessionLocal    # 데이터베이스 모델
 
 # [입문자 가이드: RAG란?]
 # RAG(Retrieval-Augmented Generation)는 AI가 학습하지 않은 최신 데이터나 
@@ -66,22 +66,22 @@ class RagService:
 
         return None
 
-    async def save_and_process_file(self, file_name: str, file_content: bytes):
-        """사용자가 업로드한 파일을 저장하고, AI가 읽을 수 있도록 분석(인덱싱)을 시작합니다."""
-        file_id = str(uuid.uuid4())     # 파일마다 고유한 아이디를 부여합니다.
-        file_ext = os.path.splitext(file_name)[1].lower() # 파일 확장자를 추출합니다.
+    def save_file_sync(self, file: "UploadFile") -> dict:
+        """[수정] 파일을 즉시 저장하고 DB에 초기 레코드를 생성합니다. 
+        백그라운드 작업 시작 전에 호출되어야 파일 소멸을 방지할 수 있습니다."""
+        file_name = file.filename
+        file_id = str(uuid.uuid4())
+        file_ext = os.path.splitext(file_name)[1].lower()
 
-        # 지원하지 않는 파일 형식인지 확인합니다.
         if file_ext not in ['.pdf', '.txt']:
             raise ValueError("Unsupported file format. Only PDF and TXT are allowed.")
 
-        # 파일을 서버의 uploads 폴더에 저장합니다.
         save_path = os.path.join(self.upload_dir, f"{file_id}{file_ext}")        
+        # 파일을 즉시 저장 (백그라운드가 아닌 메인 스레드에서 처리)
         with open(save_path, "wb") as buffer:
-            buffer.write(file_content)
+            shutil.copyfileobj(file.file, buffer)
 
-        # 1. DB에 초기 레코드 생성
-        # 파일이 성공적으로 저장되었으므로, DB에도 '처리 중(PROCESSING)' 상태로 기록합니다.
+        # DB에 'PROCESSING' 상태로 즉시 기록
         new_file = RagFile(
             file_id=file_id,
             filename=file_name,
@@ -90,46 +90,72 @@ class RagService:
         )
         self.db.add(new_file)
         self.db.commit()
-
-        # 2. 인덱싱 프로세스 시작
-        # 실제 분석 로직을 수행합니다. 성공/실패 여부에 따라 상태를 업데이트합니다.
-        try:
-            await self._process_indexing(file_id, save_path, file_name)
-            new_file.status = "COMPLETED"
-        except Exception as e:
-            print(f"Indexing Error for {file_name}: {e}")
-            new_file.status = "ERROR"
         
-        self.db.commit()
+        return {
+            "file_id": file_id,
+            "save_path": save_path,
+            "file_name": file_name
+        }
 
-    async def _process_indexing(self, file_id: str, file_path: str, original_name: str):
+    @staticmethod
+    def process_indexing_task(file_id: str, file_path: str, original_name: str):
+        """[수정] 백그라운드 분석을 동기 메소드로 변경하여 스레드 풀에서 실행되도록 합니다.
+        이렇게 하면 비동기 이벤트 루프를 방해하지 않고 독립적으로 작업을 끝낼 수 있습니다."""
+        print(f"--- Indexing Task Started for {original_name} (ID: {file_id}) ---")
+        db = SessionLocal()
+        try:
+            service = RagService(db)
+            # await 없이 직접 호출 (동기 메소드이므로)
+            service._process_indexing(file_id, file_path, original_name)
+            
+            print(f"Updating status to COMPLETED for {file_id}")
+            rag_file = db.query(RagFile).filter(RagFile.file_id == file_id).first()
+            if rag_file:
+                rag_file.status = "COMPLETED"
+                db.commit()
+                print(f"Status successfully updated to COMPLETED for {file_id}")
+            else:
+                print(f"Warning: RagFile record not found for {file_id}")
+        except Exception as e:
+            import traceback
+            print(f"Indexing Error for {original_name}: {e}")
+            traceback.print_exc()
+            rag_file = db.query(RagFile).filter(RagFile.file_id == file_id).first()
+            if rag_file:
+                rag_file.status = "ERROR"
+                db.commit()
+        finally:
+            db.close()
+            print(f"--- Indexing Task Finished for {original_name} ---")
+
+    def _process_indexing(self, file_id: str, file_path: str, original_name: str):
         """
-        [핵심 로직] 문서를 읽어서 작은 조각으로 나누고 벡터 데이터베이스에 저장합니다.
+        [수정] 동기 메소드로 변경했습니다.
         문서 로드 -> 분할 -> 임베딩 -> 저장을 담당합니다.
         """
         # 1. 로더 선택
-        # 파일 종류에 맞춰 텍스트를 읽어오는 '로더'를 선택합니다.
+        print(f"Loading document from {file_path}")
         if file_path.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
         else:
             loader = TextLoader(file_path, encoding='utf-8')
 
         docs = loader.load()
+        print(f"Document loaded. Total chunks expected from splitter...")
 
         # 2. 텍스트 분할
-        # 긴 문장을 AI가 이해하기 쉬운 크기(1000자)로 쪼갭니다. (Chunking)
-        # 문맥이 끊기지 않게 200자 정도는 앞뒤 조각과 겹치게 만듭니다 (overlap).
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         chunks = text_splitter.split_documents(docs)
+        print(f"Split completed. Created {len(chunks)} chunks.")
 
         # 3. 메타데이터 추가 및 저장 준비
-        # 텍스트를 숫자로 변환(Embedding)해주는 도구를 준비합니다.
         embeddings = LLMFactory.get_embeddings()
         vector_store = Chroma(
             persist_directory=self.chroma_dir,
             embedding_function=embeddings,
             collection_name=self.collection_name
         )
+        print(f"Vector store initialized (Chroma).")
 
         sql_records = []
         docs_to_add = []
@@ -154,6 +180,20 @@ class RagService:
             ))
 
         # 5. 저장 (Chroma 및 SQL)
-        # 최종적으로 벡터 DB와 MySQL에 분석 결과를 한꺼번에 저장합니다.
-        vector_store.add_documents(documents=docs_to_add, ids=ids_to_add)
+        # [수정] 임베딩 모델의 단일 요청 최대 토큰 한도(20,000)를 초과하지 않도록
+        # 배치 크기를 50개로 설정합니다. (100개 기준 ~20,703 토큰으로 한도 초과 확인됨)
+        batch_size = 50
+        total_batches = (len(docs_to_add) + batch_size - 1) // batch_size
+        print(f"Adding {len(docs_to_add)} documents to Vector DB in {total_batches} batches...")
+        
+        for i in range(0, len(docs_to_add), batch_size):
+            batch_docs = docs_to_add[i : i + batch_size]
+            batch_ids = ids_to_add[i : i + batch_size]
+            print(f"  Uploading batch {i//batch_size + 1}/{total_batches} ({len(batch_docs)} docs)...")
+            vector_store.add_documents(documents=batch_docs, ids=batch_ids)
+            
+        print(f"Finished adding all documents to Vector DB.")
+        
+        print(f"Adding metadata records to SQL DB...")
         self.db.add_all(sql_records)
+        print(f"SQL metadata records added to session.")

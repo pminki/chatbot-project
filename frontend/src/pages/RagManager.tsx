@@ -17,32 +17,37 @@ interface RagFile {
  */
 export const RagManager: React.FC = () => {
   // --- 상태 관리 (State) ---
-  const [files, setFiles] = useState<RagFile[]>([]); // 서버에서 받아온 파일 목록을 저장합니다.
-  const [isLoading, setIsLoading] = useState(true); // 처음 데이터를 불러오는 중인지 확인합니다.
-  const [isUploading, setIsUploading] = useState(false); // 파일을 업로드 중인지 확인합니다.
-  const fileInputRef = useRef<HTMLInputElement>(null); // 파일 선택창(input)에 직접 접근하기 위한 도구입니다.
+  const [files, setFiles] = useState<RagFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isPolling, setIsPolling] = useState(true); // PROCESSING 파일이 있는 동안만 true
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 1. 서버에서 파일 목록을 가져오는 함수
   const fetchFiles = async () => {
     try {
       const data = await ChatService.getRagFiles();
-      setFiles(data); // 성공하면 목록을 업데이트합니다.
+      setFiles(data);
+      // PROCESSING 상태의 파일이 없으면 폴링을 스스로 멈춥니다.
+      const hasProcessing = data.some((f: any) => f.status === 'PROCESSING' || f.status === 'PENDING');
+      setIsPolling(hasProcessing);
     } catch (error) {
       console.error('Failed to fetch files:', error);
     } finally {
-      setIsLoading(false); // 로딩이 끝났음을 알립니다.
+      setIsLoading(false);
     }
   };
 
-  // 2. 페이지가 처음 열릴 때 실행되는 효과
+  // 2. 파일 목록 폴링 제어
+  // PROCESSING/PENDING 상태 파일이 있을 때만 5초 간격으로 목록을 새로고침합니다.
+  // 모든 파일이 완료/에러 상태가 되면 폴링을 자동으로 멈춥니다.
   useEffect(() => {
-    fetchFiles(); // 즉시 목록을 불러오고,
+    fetchFiles(); // 즉시 목록을 불러옴.
+    if (!isPolling) return; // 폴링이 필요 없으면 인터벌 생성 안 함.
 
-    // 5초마다 한 번씩 목록을 새로고침합니다 (폴링). 
-    // 파일 분석(Processing)이 끝나면 상태가 자동으로 COMPLETED로 바뀌는 것을 보여주기 위함입니다.
     const interval = setInterval(fetchFiles, 5000);
-    return () => clearInterval(interval); // 페이지를 나갈 때는 새로고침을 멈춥니다.
-  }, []);
+    return () => clearInterval(interval);
+  }, [isPolling]); // isPolling이 바뀌면 인터벌을 재설정합니다.
 
   // 3. 파일 업로드 버튼을 눌렀을 때 실행되는 함수
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,8 +56,9 @@ export const RagManager: React.FC = () => {
 
     setIsUploading(true); // 업로드 시작! (버튼을 '업로드 중...'으로 바꿉니다)
     try {
-      await ChatService.uploadRagFile(file); // 서버로 파일을 보냅니다.
-      await fetchFiles(); // 업로드 후 목록을 다시 불러옵니다.
+      await ChatService.uploadRagFile(file);
+      setIsPolling(true); // 새 파일이 업로드되면 폴링을 다시 시작합니다.
+      await fetchFiles();
     } catch (error) {
       alert('업로드 실패: ' + error);
     } finally {
