@@ -57,4 +57,18 @@
     padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-weight: 500;
-}
+}
+
+/* 전체 화면 모드 강제 스타일 */
+.ai-chatbot-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    z-index: 999999 !important;
+    border-radius: 0 !important;
+}
