@@ -24,8 +24,18 @@ CREATE TABLE learning_tutor_records (
   INDEX idx_tutor_user_topic (user_id, learning_topic)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='학습 도우미 튜터링 이력 관리';
 
+CREATE TABLE rag_files (
+  file_id VARCHAR(100) PRIMARY KEY COMMENT '고유 파일 ID (UUID)',
+  filename VARCHAR(255) NOT NULL COMMENT '원본 파일명',
+  file_path VARCHAR(512) NOT NULL COMMENT '저장된 경로',
+  status VARCHAR(20) DEFAULT 'PENDING' COMMENT 'PENDING, PROCESSING, COMPLETED, ERROR',
+  is_active TINYINT(1) DEFAULT 1 COMMENT '이 파일의 내용을 검색에 사용할지 여부',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='RAG 학습 파일 관리';
+
 CREATE TABLE rag_documents_meta (
   doc_id VARCHAR(100) PRIMARY KEY COMMENT 'Vector DB(Chroma, FAISS 등)의 Document ID와 동일',
+  file_id VARCHAR(100) NOT NULL COMMENT '어느 파일에서 추출된 조각인지 (RagFile.file_id)',
   title VARCHAR(255) NOT NULL COMMENT '문서 제목',
 
   source_type VARCHAR(50) NOT NULL COMMENT '출처: LEGACY_DB, INTERNAL_PDF, MANUAL 등',
@@ -33,7 +43,8 @@ CREATE TABLE rag_documents_meta (
   category VARCHAR(100) COMMENT '큐레이션 카테고리 (예: 사내규정, 기술문서 등)',
   is_active TINYINT(1) DEFAULT 1 COMMENT 'RAG 검색 노출 여부 (1: 활성, 0: 비활성)',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_rag_file_id (file_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='RAG 학습 문서 메타 정보';
 
 CREATE TABLE chat_messages (
