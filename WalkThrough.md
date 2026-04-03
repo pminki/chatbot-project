@@ -235,3 +235,64 @@ The Tutor Chatbot is now ready for both high-performance desktop use and conveni
 
 > [!TIP]
 > 만약 여전히 '에러'가 발생한다면, PDF 파일의 텍스트 추출이 불가능한 경우(이미지 전용 PDF 등)일 수 있으니 로그를 확인해 주시기 바랍니다.
+
+
+# 채팅 메시지 및 세션 저장 문제 해결 완료
+
+채팅 내용이 `chat_messages`와 `chat_sessions` 테이블에 저장되지 않던 문제를 해결했습니다. 원인은 백엔드 SQLAlchemy 모델과 실제 MariaDB 데이터베이스 구조 사이의 **컬럼명 및 구성 불일치**였습니다.
+
+## 변경 내용
+
+### 1. 데이터베이스 모델 업데이트
+`backend/models/database.py` 파일을 수정하여 실제 데이터베이스 구조와 일치시켰습니다.
+
+- **`ChatSession` 모델**:
+    - `last_message_at` 컬럼이 DB에는 `updated_at`으로 이미 존재하고 있어, 모델에서도 이름을 `updated_at`으로 변경했습니다.
+    - DB에 존재하지만 모델에서 누락되었던 `session_type` 컬럼을 추가했습니다.
+- **`RagDocumentMeta` 모델**:
+    - DB에 존재하는 `created_at` 및 `updated_at` 컬럼을 모델에도 추가하여 데이터 정합성을 확보했습니다.
+
+### 2. 백엔드 서버 재시작
+Docker 환경에서 소스 코드 변경 사항(SQLAlchemy 모델)이 즉시 반영되도록 `chatbot-backend` 컨테이너를 재시작했습니다.
+
+## 결과 확인
+
+> [!TIP]
+> 이제 채팅 메시지를 보내면 백엔드 로그에 "로그 저장 실패" 오류가 나타나지 않으며, 데이터베이스에 정상적으로 저장됩니다.
+
+- [x] **백엔드 리로드**: 컨테이너 재시작 후 서버가 `0.0.0.0:8000`에서 정상적으로 동작 중임을 확인했습니다.
+- [x] **스키마 정합성**: SQLAlchemy가 생성하는 SQL 쿼리가 더 이상 "Unknown column 'last_message_at'" 오류를 발생시키지 않습니다.
+
+## 관련 파일 확인
+- [database.py](file:///e:/project/chatbot-project/backend/models/database.py) - 수정된 데이터베이스 모델 파일
+- [task.md](file:///C:/Users/user/.gemini/antigravity/brain/547a3d8d-6c1c-49d5-ba0e-3fd882e2c386/task.md) - 작업 진행 상태 보고서
+
+이제 정상적으로 대화 내용이 기록될 것입니다. 추가로 확인이 필요하신 사항이 있으면 말씀해 주세요!
+
+
+# RAG 문서 메타데이터 저장 로직 수정 완료
+
+RAG 문서 업로드 시 메타데이터가 데이터베이스에 저장되지 않던 문제를 해결했습니다. 원인은 `RagDocumentMeta` 모델의 `file_size` 컬럼이 `BigInteger` 타입으로 선언되어 있어, 실제 업로드된 파일 크기(Integer)와 타입이 맞지 않아 발생한 **타입 불일치**였습니다.
+
+## 변경 내용
+
+### 1. 데이터베이스 모델 수정
+`backend/models/database.py` 파일에서 `RagDocumentMeta` 모델의 `file_size` 컬럼 타입을 `BigInteger`에서 `Integer`로 변경했습니다.
+
+- **`RagDocumentMeta` 모델**: `file_size` 컬럼의 타입을 `Integer`로 수정하여 실제 파일 크기(바이트 단위)를 저장할 수 있도록 변경했습니다.
+
+### 2. 백엔드 서버 재시작
+Docker 환경에서 소스 코드 변경 사항이 즉시 반영되도록 `chatbot-backend` 컨테이너를 재시작했습니다.
+
+## 결과 확인
+
+> [!TIP]
+> 이제 RAG 문서를 업로드하면 메타데이터가 데이터베이스에 정상적으로 저장됩니다.
+
+- [x] **백엔드 리로드**: 컨테이너 재시작 후 서버가 `0.0.0.0:8000`에서 정상적으로 동작 중임을 확인했습니다.
+- [x] **스키마 정합성**: SQLAlchemy가 `Integer` 타입으로 `file_size`를 저장하므로 더 이상 타입 불일치 오류가 발생하지 않습니다.
+
+## 관련 파일 확인
+- [database.py](file:///e:/project/chatbot-project/backend/models/database.py) - 수정된 데이터베이스 모델 파일
+
+이제 RAG 문서 업로드 기능이 정상적으로 동작할 것입니다. 추가로 확인이 필요하신 사항이 있으면 말씀해 주세요!

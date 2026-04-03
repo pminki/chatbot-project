@@ -24,8 +24,9 @@ class ChatSession(Base):
   __tablename__ = "chat_sessions"
   session_id = Column(String(100), primary_key=True)                   # 세션 고유 ID
   user_id = Column(String(50), nullable=False, index=True)            # 사용자 ID
+  session_type = Column(String(20), default="NORMAL")                # 세션 종류 (NORMAL, CS, TUTOR 등)
   created_at = Column(DateTime, default=func.now())                   # 세션 생성 시간
-  last_message_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 마지막 대화 시간
+  updated_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 마지막 대화 시간
 
 # [테이블 2: LearningTutorRecord] 
 # 사용자가 튜터와 대화하며 학습한 이력을 저장하는 표입니다.
@@ -63,6 +64,8 @@ class RagDocumentMeta(Base):
   legacy_ref_id = Column(String(100))                                 # 이전 시스템 참조 ID
   category = Column(String(100))                                      # 문서 분류(카테고리)
   is_active = Column(Boolean, default=True)                           # 현재 사용 중인지 여부 (기본값 True)
+  created_at = Column(DateTime, default=func.now())                   # 생성 시간
+  updated_at = Column(DateTime, default=func.now(), onupdate=func.now()) # 수정 시간
 
 
 # [테이블 5: ChatMessage]
