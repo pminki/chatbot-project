@@ -73,3 +73,4 @@ Desktop.ini
 *.swo
 
 # 참고: .cursorrules 파일은 AI 에디터의 공통 규칙이므로 팀원과 공유하기 위해 Git에 포함시킵니다. (무시하지 않음)
+backend_logs.txt
