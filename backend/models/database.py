@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, BigInteger, String, Text, DateTime, func, Boolean
+from sqlalchemy import create_engine, Column, BigInteger, String, Text, DateTime, func, Boolean, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # 1. 데이터베이스 연결 주소(URL) 설정
@@ -33,7 +33,7 @@ class ChatSession(Base):
 class LearningTutorRecord(Base):
   __tablename__ = "learning_tutor_records"
   record_id = Column(BigInteger, primary_key=True, autoincrement=True) # 고유 기록 번호
-  session_id = Column(String(100), nullable=False, index=True)         # 대화 방 번호
+  session_id = Column(String(100), ForeignKey("chat_sessions.session_id"), nullable=False, index=True)         # 대화 방 번호
   user_id = Column(String(50), nullable=False, index=True)            # 사용자 ID
   learning_topic = Column(String(200), nullable=False)                # 학습한 주제
   understanding_level = Column(String(50))                            # 이해도 등급
@@ -73,7 +73,7 @@ class RagDocumentMeta(Base):
 class ChatMessage(Base):
   __tablename__ = "chat_messages"
   message_id = Column(BigInteger, primary_key=True, autoincrement=True) # 메시지 고유 번호
-  session_id = Column(String(100), nullable=False, index=True)         # 어느 대화 방인지
+  session_id = Column(String(100), ForeignKey("chat_sessions.session_id"), nullable=False, index=True)         # 어느 대화 방인지
   role = Column(String(20), nullable=False) # 보낸 사람의 역할 ('USER', 'ASSISTANT', 'SYSTEM')
   content = Column(Text, nullable=False)     # 메시지 실제 내용
   tokens_used = Column(BigInteger, default=0) # 이 답변을 만들 때 사용된 AI 토큰 양

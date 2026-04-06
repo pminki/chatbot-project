@@ -44,6 +44,8 @@ async def log_chat_message(session_id: str, user_id: str, user_msg: str, bot_msg
     if not session:
       session = ChatSession(session_id=session_id, user_id=user_id)
       db.add(session)
+      db.flush() # 세션을 먼저 DB에 반영하여 외래키 제약조건 위반 방지
+      print(f"--- [DEBUG] New ChatSession created: {session_id}")
     
     # 2. 메시지 저장: 유저가 보낸 말과 AI가 대답한 말을 각각 저장합니다.
     db.add(ChatMessage(session_id=session_id, role="USER", content=user_msg))
